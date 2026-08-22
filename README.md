@@ -2,6 +2,11 @@
 
 An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, priority, and delayed delivery. The service will own its durable storage implementation, recover after application restarts, and safely support concurrent producers and consumers.
 
+## Documentation
+
+- [Queue Contract](docs/queue-contract.md)
+- [Core Queue Engine](docs/core-queue-engine.md)
+
 ## 1. Establish the Queue's Contract
 
 **Main goal:** Define exactly how the queue behaves before implementation begins. These decisions become the contract enforced by tests and documented for users.
@@ -21,7 +26,7 @@ The contract specifies:
 
 **Main goal:** Implement FIFO, LIFO, priority, and delay as a standalone Go package without involving HTTP or disk persistence yet.
 
-**Status:** Implemented in [`internal/queue`](internal/queue) with contract-driven unit and concurrency tests.
+**Status:** Implemented in [`internal/queue`](internal/queue) with contract-driven unit and concurrency tests. See [Core Queue Engine](docs/core-queue-engine.md).
 
 ### 2.1 Define the core data model
 
