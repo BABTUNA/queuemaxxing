@@ -28,6 +28,15 @@ The contract specifies:
 
 **Status:** Implemented in [`internal/queue`](internal/queue) with contract-driven unit and concurrency tests. See [Core Queue Engine](docs/core-queue-engine.md).
 
+The engine implements:
+
+- Priority-first ordering with FIFO or LIFO tie-breaking
+- Separate ready and delayed heaps
+- Delay eligibility and promotion during dequeue
+- Message validation, sequence assignment, and UUIDv4 IDs
+- Mutex-protected enqueue and dequeue operations
+- Contract-driven unit, boundary, and concurrency tests
+
 ## 3. Implement Durable Storage and Recovery
 
 **Main goal:** Make queue mutations survive crashes and application restarts without using an external database or queue.
