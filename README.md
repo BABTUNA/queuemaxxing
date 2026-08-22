@@ -21,6 +21,8 @@ The contract specifies:
 
 **Main goal:** Implement FIFO, LIFO, priority, and delay as a standalone Go package without involving HTTP or disk persistence yet.
 
+**Status:** Implemented in [`internal/queue`](internal/queue) with contract-driven unit and concurrency tests.
+
 ### 2.1 Define the core data model
 
 Create types for:
