@@ -28,69 +28,6 @@ The contract specifies:
 
 **Status:** Implemented in [`internal/queue`](internal/queue) with contract-driven unit and concurrency tests. See [Core Queue Engine](docs/core-queue-engine.md).
 
-### 2.1 Define the core data model
-
-Create types for:
-
-- `Message`
-- `Ordering`
-- `QueueConfig`
-- `Queue`
-
-Each message will contain:
-
-- Unique ID
-- Body
-- Priority
-- Sequence number
-- Creation time
-- Availability time
-
-### 2.2 Implement the ready heap
-
-The ready heap contains messages that can be consumed immediately. Its comparator will:
-
-1. Select the higher-priority message.
-2. For equal priorities, compare sequence numbers.
-3. Use lower sequence numbers for FIFO.
-4. Use higher sequence numbers for LIFO.
-
-### 2.3 Implement the delayed heap
-
-The delayed heap contains messages whose delays have not expired. It will be ordered by:
-
-1. Earliest `AvailableAt`.
-2. Sequence number as a deterministic tie-breaker.
-
-### 2.4 Implement enqueue
-
-Enqueue will:
-
-1. Validate the message.
-2. Assign its ID and sequence number.
-3. Calculate `AvailableAt`.
-4. Insert it into either the ready or delayed heap.
-
-### 2.5 Implement dequeue
-
-Dequeue will:
-
-1. Acquire the queue lock.
-2. Move all eligible delayed messages into the ready heap.
-3. Remove the highest-ranked ready message.
-4. Return nothing if no message is available.
-
-### 2.6 Add concurrency protection
-
-A mutex will protect:
-
-- Both heaps
-- Sequence assignment
-- Enqueue operations
-- Dequeue operations
-
-This ensures two consumers cannot receive the same message.
-
 ## 3. Implement Durable Storage and Recovery
 
 **Main goal:** Make queue mutations survive crashes and application restarts without using an external database or queue.
