@@ -6,31 +6,16 @@ An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, 
 
 **Main goal:** Define exactly how the queue behaves before implementation begins. These decisions become the contract enforced by tests and documented for users.
 
-### 1.1 Ordering semantics
+**Status:** Contract defined in [Queue Contract](docs/queue-contract.md).
 
-- Priority is the primary ordering mechanism.
-- FIFO or LIFO breaks ties between messages with equal priority.
-- Messages without an explicit priority receive a default priority.
-- Each message receives a monotonically increasing sequence number.
+The contract specifies:
 
-### 1.2 Delay semantics
-
-- Immediate messages enter the ready queue.
-- Delayed messages remain unavailable until `AvailableAt`.
-- A delayed high-priority message must not block an immediate lower-priority message.
-
-### 1.3 Delivery semantics
-
-- Dequeue permanently removes the message.
-- Empty queues return HTTP `204 No Content`.
-- The initial version provides at-most-once delivery.
-- ACK/NACK and visibility timeouts are future improvements.
-
-### 1.4 Durability semantics
-
-- A mutation is written and synced to disk before the server confirms success.
-- On startup, the server reconstructs its state from the persisted log.
-- A partially written final record must not prevent recovery.
+- Priority-first ordering with FIFO or LIFO tie-breaking
+- Delay eligibility and promotion behavior
+- Destructive, at-most-once dequeue semantics
+- Per-queue concurrency guarantees
+- Durable mutation and crash-recovery boundaries
+- Input defaults, limits, and error behavior
 
 ## 2. Build the Core Queue Engine
 
