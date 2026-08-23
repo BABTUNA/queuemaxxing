@@ -1,6 +1,6 @@
 # Core Queue Engine
 
-[Repository](../README.md) · [Queue Contract](queue-contract.md) · **Core Queue Engine**
+[Repository](../README.md) · [Queue Contract](queue-contract.md) · **Core Queue Engine** · [Durable Storage](durable-storage.md)
 
 The core engine implements priority, FIFO/LIFO tie-breaking, delay, and thread-safe enqueue/dequeue behavior. It is intentionally independent of HTTP and persistence.
 
@@ -12,8 +12,10 @@ The core engine implements priority, FIFO/LIFO tie-breaking, delay, and thread-s
 | [`errors.go`](../internal/queue/errors.go) | Validation and sequence errors |
 | [`ready_heap.go`](../internal/queue/ready_heap.go) | Priority plus FIFO/LIFO ordering |
 | [`delayed_heap.go`](../internal/queue/delayed_heap.go) | Earliest-availability ordering |
-| [`queue.go`](../internal/queue/queue.go) | Queue construction, enqueue, dequeue, promotion, and IDs |
+| [`journal.go`](../internal/queue/journal.go) | Persistence boundary used before memory mutations |
+| [`queue.go`](../internal/queue/queue.go) | Queue construction, restoration, enqueue, dequeue, promotion, and IDs |
 | [`queue_test.go`](../internal/queue/queue_test.go) | Contract, boundary, and concurrency tests |
+| [`persistence_test.go`](../internal/queue/persistence_test.go) | Verifies failed journal writes do not mutate the queue |
 
 ## Queue State
 
@@ -25,6 +27,7 @@ type Queue struct {
     ready      readyHeap
     delayed    delayedHeap
     generateID idGenerator
+    journal    Journal
 }
 ```
 
@@ -33,6 +36,7 @@ type Queue struct {
 - `ready` contains immediately consumable messages.
 - `delayed` contains messages waiting for `AvailableAt`.
 - `generateID` uses UUIDv4 generation and can be replaced in tests.
+- `journal` records enqueue and dequeue before they mutate memory.
 
 ## Ready Heap
 
@@ -89,7 +93,7 @@ lock queue
 → unlock
 ```
 
-If the ready heap is empty, dequeue returns `(Message{}, false)`.
+If the ready heap is empty, dequeue returns `(Message{}, false, nil)`. Persistence failures are returned as the third value without removing the message.
 
 ## Concurrency
 

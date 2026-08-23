@@ -101,7 +101,7 @@ func TestQueueOrdering(t *testing.T) {
 				}
 			}
 
-			if got := drainBodies(q, testTime); !equalStrings(got, tt.want) {
+			if got := drainBodies(t, q, testTime); !equalStrings(got, tt.want) {
 				t.Fatalf("dequeue order = %v, want %v", got, tt.want)
 			}
 		})
@@ -152,16 +152,24 @@ func TestDelayedMessageEligibilityAndPriority(t *testing.T) {
 		t.Fatalf("enqueue ready message: %v", err)
 	}
 
-	message, ok := q.Dequeue(testTime)
+	message, ok, err := q.Dequeue(testTime)
+	if err != nil {
+		t.Fatalf("Dequeue(at enqueue) returned error: %v", err)
+	}
 	if !ok || message.Body != "ready-low" {
 		t.Fatalf("Dequeue(at enqueue) = (%q, %t), want ready-low", message.Body, ok)
 	}
 
-	if message, ok := q.Dequeue(delayed.AvailableAt.Add(-time.Nanosecond)); ok {
+	if message, ok, err := q.Dequeue(delayed.AvailableAt.Add(-time.Nanosecond)); err != nil {
+		t.Fatalf("Dequeue(before AvailableAt) returned error: %v", err)
+	} else if ok {
 		t.Fatalf("Dequeue(before AvailableAt) returned %q, want empty", message.Body)
 	}
 
-	message, ok = q.Dequeue(delayed.AvailableAt)
+	message, ok, err = q.Dequeue(delayed.AvailableAt)
+	if err != nil {
+		t.Fatalf("Dequeue(at AvailableAt) returned error: %v", err)
+	}
 	if !ok || message.Body != "delayed-high" {
 		t.Fatalf("Dequeue(at AvailableAt) = (%q, %t), want delayed-high", message.Body, ok)
 	}
@@ -198,12 +206,15 @@ func TestDelayedMessagesRetainSequenceTieBreaker(t *testing.T) {
 				t.Fatalf("Enqueue(B) returned error: %v", err)
 			}
 
-			message, ok := q.Dequeue(testTime)
+			message, ok, err := q.Dequeue(testTime)
+			if err != nil {
+				t.Fatalf("first Dequeue() returned error: %v", err)
+			}
 			if !ok || message.Body != "B" {
 				t.Fatalf("first Dequeue() = (%q, %t), want B", message.Body, ok)
 			}
 
-			if got := drainBodies(q, testTime.Add(10*time.Second)); !equalStrings(got, tt.want) {
+			if got := drainBodies(t, q, testTime.Add(10*time.Second)); !equalStrings(got, tt.want) {
 				t.Fatalf("delayed dequeue order = %v, want %v", got, tt.want)
 			}
 		})
@@ -277,7 +288,7 @@ func TestIDGenerationFailureDoesNotMutateQueue(t *testing.T) {
 	want := errors.New("random source failed")
 	q := newQueue(FIFO, func() (string, error) {
 		return "", want
-	})
+	}, noopJournal{})
 
 	if _, err := q.Enqueue(EnqueueInput{Body: "A"}, testTime); !errors.Is(err, want) {
 		t.Fatalf("Enqueue() error = %v, want wrapped generator error", err)
@@ -379,7 +390,12 @@ func TestConcurrentDequeueReturnsEachMessageOnce(t *testing.T) {
 		go func() {
 			defer workers.Done()
 			<-start
-			if message, ok := q.Dequeue(testTime); ok {
+			message, ok, err := q.Dequeue(testTime)
+			if err != nil {
+				t.Errorf("Dequeue() returned error: %v", err)
+				return
+			}
+			if ok {
 				results <- message
 			}
 		}()
@@ -399,7 +415,9 @@ func TestConcurrentDequeueReturnsEachMessageOnce(t *testing.T) {
 	if len(seen) != total {
 		t.Fatalf("dequeued %d unique messages, want %d", len(seen), total)
 	}
-	if message, ok := q.Dequeue(testTime); ok {
+	if message, ok, err := q.Dequeue(testTime); err != nil {
+		t.Fatalf("final Dequeue() returned error: %v", err)
+	} else if ok {
 		t.Fatalf("queue not empty after concurrent dequeue; got %q", message.Body)
 	}
 }
@@ -422,7 +440,12 @@ func TestMixedConcurrentOperationsDoNotLoseMessages(t *testing.T) {
 		}()
 		go func() {
 			defer workers.Done()
-			if message, ok := q.Dequeue(testTime); ok {
+			message, ok, err := q.Dequeue(testTime)
+			if err != nil {
+				t.Errorf("Dequeue() returned error: %v", err)
+				return
+			}
+			if ok {
 				dequeued <- message
 			}
 		}()
@@ -430,7 +453,10 @@ func TestMixedConcurrentOperationsDoNotLoseMessages(t *testing.T) {
 
 	workers.Wait()
 	for {
-		message, ok := q.Dequeue(testTime)
+		message, ok, err := q.Dequeue(testTime)
+		if err != nil {
+			t.Fatalf("drain Dequeue() returned error: %v", err)
+		}
 		if !ok {
 			break
 		}
@@ -463,13 +489,17 @@ func newTestQueue(ordering Ordering) *Queue {
 	return newQueue(ordering, func() (string, error) {
 		nextID++
 		return fmt.Sprintf("test-id-%d", nextID), nil
-	})
+	}, noopJournal{})
 }
 
-func drainBodies(q *Queue, now time.Time) []string {
+func drainBodies(t *testing.T, q *Queue, now time.Time) []string {
+	t.Helper()
 	var bodies []string
 	for {
-		message, ok := q.Dequeue(now)
+		message, ok, err := q.Dequeue(now)
+		if err != nil {
+			t.Fatalf("Dequeue() returned error: %v", err)
+		}
 		if !ok {
 			return bodies
 		}

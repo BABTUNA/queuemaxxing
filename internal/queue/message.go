@@ -35,3 +35,10 @@ type EnqueueInput struct {
 	Priority int32
 	Delay    time.Duration
 }
+
+// State contains the durable information required to restore a queue.
+type State struct {
+	Ordering Ordering
+	Sequence uint64
+	Messages []Message
+}

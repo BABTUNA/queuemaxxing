@@ -6,6 +6,7 @@ An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, 
 
 - [Queue Contract](docs/queue-contract.md)
 - [Core Queue Engine](docs/core-queue-engine.md)
+- [Durable Storage and Recovery](docs/durable-storage.md)
 
 ## 1. Establish the Queue's Contract
 
@@ -41,54 +42,16 @@ The engine implements:
 
 **Main goal:** Make queue mutations survive crashes and application restarts without using an external database or queue.
 
-### 3.1 Design the write-ahead log
+**Status:** Implemented in [`internal/storage`](internal/storage) and integrated through the queue journal boundary. See [Durable Storage and Recovery](docs/durable-storage.md).
 
-Use a custom append-only WAL containing records such as:
+The storage layer implements:
 
-- Create queue
-- Enqueue message
-- Dequeue message
-
-Each record should be:
-
-- Length-prefixed
-- Checksummed
-- Written in a versioned format
-
-### 3.2 Integrate storage with mutations
-
-The mutation sequence will be:
-
-```text
-Acquire lock
-→ determine mutation
-→ append WAL record
-→ sync WAL to disk
-→ update in-memory state
-→ release lock
-→ return success
-```
-
-If the disk write fails, the in-memory mutation will not be committed.
-
-### 3.3 Implement startup recovery
-
-When the server starts, it will:
-
-1. Open the WAL.
-2. Read records in order.
-3. Verify each checksum.
-4. Replay valid operations.
-5. Ignore or truncate an incomplete final record.
-6. Reconstruct the ready and delayed heaps.
-
-### 3.4 Plan for future compaction
-
-The initial version may replay the entire WAL. A future version can:
-
-- Write periodic snapshots.
-- Rotate old WAL files.
-- Remove obsolete records after successful snapshotting.
+- Append-only JSON-lines WAL records
+- Durable create, enqueue, and dequeue operations
+- Sync-before-memory mutation ordering
+- Incomplete final-record recovery
+- Queue-state replay and ready/delayed heap restoration
+- Restart and write-failure tests
 
 ## 4. Expose the Queue as an HTTP Service
 
@@ -220,7 +183,7 @@ Verify:
 - Dequeued messages do not reappear.
 - Queue configurations survive restart.
 - Truncated final WAL records are handled safely.
-- Invalid checksums are detected.
+- Invalid complete JSON records are detected.
 - Failed disk writes do not produce successful HTTP responses.
 
 ### 6.4 HTTP integration tests

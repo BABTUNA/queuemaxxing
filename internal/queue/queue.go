@@ -22,6 +22,7 @@ type Queue struct {
 	ready      readyHeap
 	delayed    delayedHeap
 	generateID idGenerator
+	journal    Journal
 }
 
 // New creates an empty queue with the requested equal-priority ordering mode.
@@ -30,17 +31,52 @@ func New(ordering Ordering) (*Queue, error) {
 		return nil, ErrInvalidOrdering
 	}
 
-	return newQueue(ordering, generateMessageID), nil
+	return newQueue(ordering, generateMessageID, noopJournal{}), nil
 }
 
-func newQueue(ordering Ordering, generator idGenerator) *Queue {
+// NewWithJournal creates a queue whose semantic mutations must be recorded by
+// journal before they are committed to memory.
+func NewWithJournal(ordering Ordering, journal Journal) (*Queue, error) {
+	if ordering != FIFO && ordering != LIFO {
+		return nil, ErrInvalidOrdering
+	}
+	if journal == nil {
+		return nil, ErrNilJournal
+	}
+
+	return newQueue(ordering, generateMessageID, journal), nil
+}
+
+func newQueue(ordering Ordering, generator idGenerator, journal Journal) *Queue {
 	return &Queue{
 		ordering: ordering,
 		ready: readyHeap{
 			ordering: ordering,
 		},
 		generateID: generator,
+		journal:    journal,
 	}
+}
+
+// Restore reconstructs a queue without journaling the historical messages.
+// Future mutations are recorded through journal.
+func Restore(state State, now time.Time, journal Journal) (*Queue, error) {
+	q, err := NewWithJournal(state.Ordering, journal)
+	if err != nil {
+		return nil, err
+	}
+	q.sequence = state.Sequence
+
+	now = now.UTC()
+	for _, message := range state.Messages {
+		if message.AvailableAt.After(now) {
+			heap.Push(&q.delayed, message)
+		} else {
+			heap.Push(&q.ready, message)
+		}
+	}
+
+	return q, nil
 }
 
 // Ordering returns the queue's immutable equal-priority ordering mode.
@@ -68,17 +104,21 @@ func (q *Queue) Enqueue(input EnqueueInput, now time.Time) (Message, error) {
 		return Message{}, fmt.Errorf("generate message ID: %w", err)
 	}
 
-	q.sequence++
+	nextSequence := q.sequence + 1
 	createdAt := now.UTC()
 	message := Message{
 		ID:          id,
 		Body:        input.Body,
 		Priority:    input.Priority,
-		Sequence:    q.sequence,
+		Sequence:    nextSequence,
 		CreatedAt:   createdAt,
 		AvailableAt: createdAt.Add(input.Delay),
 	}
+	if err := q.journal.RecordEnqueue(message); err != nil {
+		return Message{}, fmt.Errorf("record enqueue: %w", err)
+	}
 
+	q.sequence = nextSequence
 	if input.Delay == 0 {
 		heap.Push(&q.ready, message)
 	} else {
@@ -89,16 +129,21 @@ func (q *Queue) Enqueue(input EnqueueInput, now time.Time) (Message, error) {
 }
 
 // Dequeue removes and returns the highest-ranked message eligible at now.
-func (q *Queue) Dequeue(now time.Time) (Message, bool) {
+func (q *Queue) Dequeue(now time.Time) (Message, bool, error) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	q.promoteEligible(now.UTC())
 	if q.ready.Len() == 0 {
-		return Message{}, false
+		return Message{}, false, nil
 	}
 
-	return heap.Pop(&q.ready).(Message), true
+	message := q.ready.items[0]
+	if err := q.journal.RecordDequeue(message.ID); err != nil {
+		return Message{}, false, fmt.Errorf("record dequeue: %w", err)
+	}
+
+	return heap.Pop(&q.ready).(Message), true, nil
 }
 
 func (q *Queue) promoteEligible(now time.Time) {

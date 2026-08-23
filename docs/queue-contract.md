@@ -1,6 +1,6 @@
 # Queue Contract
 
-[Repository](../README.md) · **Queue Contract** · [Core Queue Engine](core-queue-engine.md)
+[Repository](../README.md) · **Queue Contract** · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md)
 
 This document defines Queuemaxxing's externally observable behavior. The implementation and tests must conform to it.
 
@@ -60,7 +60,7 @@ Operations are atomic within each queue:
 - Different queues may operate concurrently and have independent sequence spaces.
 - No ordering guarantee exists across queues.
 
-Exactly one server process may own a data directory. A second process must fail instead of risking corruption.
+The initial implementation runs as one server process per data directory. Shared multi-process storage is unsupported.
 
 ## 4. Durability and Recovery
 
@@ -75,7 +75,7 @@ If append or sync fails, the operation returns an error and does not modify memo
 On startup, WAL replay reconstructs queue definitions, undequeued messages, ready/delayed membership, and the next sequence number.
 
 - An incomplete final record is treated as an interrupted write and may be ignored or truncated.
-- A complete record with an invalid checksum is corruption and stops startup.
+- A complete record that is not valid JSON is corruption and stops startup.
 - Interior corruption must never be silently skipped.
 
 Durability covers acknowledged operations on one machine after a successful filesystem sync. It does not cover loss or failure of the underlying machine or storage device.
