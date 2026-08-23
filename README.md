@@ -7,6 +7,7 @@ An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, 
 - [Queue Contract](docs/queue-contract.md)
 - [Core Queue Engine](docs/core-queue-engine.md)
 - [Durable Storage and Recovery](docs/durable-storage.md)
+- [HTTP Service](docs/http-service.md)
 
 ## 1. Establish the Queue's Contract
 
@@ -57,55 +58,16 @@ The storage layer implements:
 
 **Main goal:** Wrap the tested queue and persistence layers in a small, predictable HTTP API.
 
-### 4.1 Build the queue manager
+**Status:** Implemented in [`internal/service`](internal/service), [`internal/httpapi`](internal/httpapi), and [`cmd/server`](cmd/server). See [HTTP Service](docs/http-service.md).
 
-The manager will own all named queues:
+The HTTP service implements:
 
-```go
-type Manager struct {
-    mu     sync.RWMutex
-    queues map[string]*Queue
-}
-```
-
-It will handle:
-
-- Creating queues
-- Looking up queues
-- Preventing duplicate queue names
-- Coordinating recovery
-
-Each queue will retain its own mutex so unrelated queues can operate concurrently.
-
-### 4.2 Define the initial endpoints
-
-```text
-POST /queues
-POST /queues/{name}/messages
-POST /queues/{name}/dequeue
-GET  /queues/{name}
-GET  /health
-```
-
-### 4.3 Keep handlers thin
-
-Handlers should only:
-
-1. Decode and validate requests.
-2. Call the manager or queue engine.
-3. Convert results into HTTP responses.
-4. Return consistent error objects.
-
-The handlers should not contain ordering or persistence logic.
-
-### 4.4 Add graceful shutdown
-
-On shutdown, the server should:
-
-- Stop accepting new requests.
-- Allow active requests to finish.
-- Sync and close the WAL.
-- Exit cleanly.
+- Durable creation and recovery of named queues
+- Create, inspect, enqueue, dequeue, and health endpoints
+- Strict JSON decoding and contract-aligned errors
+- Independent concurrency across named queues
+- Standard-library routing and graceful shutdown
+- Manager and HTTP workflow tests
 
 ## 5. Build the Demonstration Application
 

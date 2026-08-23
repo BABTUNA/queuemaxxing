@@ -1,6 +1,6 @@
 # Core Queue Engine
 
-[Repository](../README.md) · [Queue Contract](queue-contract.md) · **Core Queue Engine** · [Durable Storage](durable-storage.md)
+[Repository](../README.md) · [Queue Contract](queue-contract.md) · **Core Queue Engine** · [Durable Storage](durable-storage.md) · [HTTP Service](http-service.md)
 
 The core engine implements priority, FIFO/LIFO tie-breaking, delay, and thread-safe enqueue/dequeue behavior. It is intentionally independent of HTTP and persistence.
 
