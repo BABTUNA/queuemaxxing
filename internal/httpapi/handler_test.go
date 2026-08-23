@@ -100,7 +100,37 @@ func TestHealth(t *testing.T) {
 	}
 }
 
+func TestHTTPStorageFailureReturnsInternalError(t *testing.T) {
+	handler, manager, wal := newTestSystem(t)
+	response := request(t, handler, http.MethodPost, "/queues", `{"name":"emails","ordering":"fifo"}`)
+	if response.Code != http.StatusCreated {
+		t.Fatalf("create status = %d, want 201", response.Code)
+	}
+	if err := wal.Close(); err != nil {
+		t.Fatalf("Close() returned error: %v", err)
+	}
+
+	response = request(t, handler, http.MethodPost, "/queues/emails/messages", `{"body":"must not be accepted"}`)
+	if response.Code != http.StatusInternalServerError {
+		t.Fatalf("enqueue status = %d, want 500; body=%s", response.Code, response.Body.String())
+	}
+	var body errorResponse
+	decodeResponse(t, response, &body)
+	if body.Error.Code != "internal_error" {
+		t.Fatalf("error code = %q, want internal_error", body.Error.Code)
+	}
+	if _, ok, err := manager.Dequeue("emails", handlerTestTime); err != nil || ok {
+		t.Fatalf("Dequeue() after failed enqueue = (ok=%t, err=%v), want empty", ok, err)
+	}
+}
+
 func newTestHandler(t *testing.T) *Handler {
+	t.Helper()
+	handler, _, _ := newTestSystem(t)
+	return handler
+}
+
+func newTestSystem(t *testing.T) (*Handler, *service.Manager, *storage.WAL) {
 	t.Helper()
 	wal, err := storage.Open(filepath.Join(t.TempDir(), "queue.wal"))
 	if err != nil {
@@ -113,7 +143,7 @@ func newTestHandler(t *testing.T) *Handler {
 	}
 	handler := NewHandler(manager)
 	handler.now = func() time.Time { return handlerTestTime }
-	return handler
+	return handler, manager, wal
 }
 
 func request(t *testing.T, handler http.Handler, method, path, body string) *httptest.ResponseRecorder {

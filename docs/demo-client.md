@@ -1,6 +1,6 @@
 # Demonstration Client
 
-[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · [HTTP Service](http-service.md) · **Demo Client**
+[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · [HTTP Service](http-service.md) · **Demo Client** · [Validation](validation.md)
 
 The demonstration application is a small command-line client for the queue's HTTP API.
 

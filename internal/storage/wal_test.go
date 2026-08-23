@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -72,6 +73,19 @@ func TestReplayIgnoresPartialFinalLine(t *testing.T) {
 	}
 	if len(records) != 1 || !reflect.DeepEqual(records[0], want) {
 		t.Fatalf("Replay() = %+v, want only create record", records)
+	}
+}
+
+func TestReplayRejectsCompleteInvalidLine(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "queue.wal")
+	if err := os.WriteFile(path, []byte("{not valid JSON}\n"), 0o600); err != nil {
+		t.Fatalf("write invalid WAL: %v", err)
+	}
+
+	wal := openTestWAL(t, path)
+	t.Cleanup(func() { _ = wal.Close() })
+	if _, err := wal.Replay(); !errors.Is(err, ErrInvalidWAL) {
+		t.Fatalf("Replay() error = %v, want ErrInvalidWAL", err)
 	}
 }
 

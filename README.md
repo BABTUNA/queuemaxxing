@@ -9,6 +9,7 @@ An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, 
 - [Durable Storage and Recovery](docs/durable-storage.md)
 - [HTTP Service](docs/http-service.md)
 - [Demonstration Client](docs/demo-client.md)
+- [Correctness and Failure Validation](docs/validation.md)
 
 ## 1. Establish the Queue's Contract
 
@@ -88,56 +89,17 @@ The demonstration application provides:
 
 **Main goal:** Demonstrate that the implementation remains correct under concurrency, crashes, restarts, and malformed persistence data.
 
-### 6.1 Queue unit tests
+**Status:** Validated across the queue, storage, manager, HTTP, and client layers. See [Correctness and Failure Validation](docs/validation.md).
 
-Cover:
+The validation suite covers:
 
-- FIFO
-- LIFO
-- Priority plus FIFO
-- Priority plus LIFO
-- Delay plus FIFO/LIFO
-- Delay plus priority plus FIFO/LIFO
-- Equal availability-time behavior
-- Empty queue behavior
-
-### 6.2 Concurrency tests
-
-Test:
-
-- Concurrent producers
-- Concurrent consumers
-- Mixed enqueue and dequeue
-- Multiple named queues
-- Duplicate-delivery prevention
-
-Run everything with:
-
-```bash
-go test -race ./...
-```
-
-### 6.3 Persistence tests
-
-Verify:
-
-- Enqueued messages survive restart.
-- Dequeued messages do not reappear.
-- Queue configurations survive restart.
-- Truncated final WAL records are handled safely.
-- Invalid complete JSON records are detected.
-- Failed disk writes do not produce successful HTTP responses.
-
-### 6.4 HTTP integration tests
-
-Use `httptest` to verify:
-
-- Request validation
-- Status codes
-- Response bodies
-- Queue-not-found behavior
-- Duplicate queue creation
-- Concurrent HTTP requests
+- FIFO, LIFO, priority, delay, and boundary behavior
+- Concurrent queue and HTTP operations without duplicate delivery
+- Restart recovery and incomplete WAL writes
+- Complete WAL corruption detection
+- Storage failures through the queue and HTTP boundaries
+- Request validation, status codes, and client behavior
+- Automated tests, race detection, and vetting in GitHub Actions
 
 ## 7. Document and Package the Submission
 

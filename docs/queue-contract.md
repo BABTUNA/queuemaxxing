@@ -1,6 +1,6 @@
 # Queue Contract
 
-[Repository](../README.md) · **Queue Contract** · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · [HTTP Service](http-service.md) · [Demo Client](demo-client.md)
+[Repository](../README.md) · **Queue Contract** · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · [HTTP Service](http-service.md) · [Demo Client](demo-client.md) · [Validation](validation.md)
 
 This document defines Queuemaxxing's externally observable behavior. The implementation and tests must conform to it.
 
