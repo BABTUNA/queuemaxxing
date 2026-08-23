@@ -1,6 +1,6 @@
 # HTTP Service
 
-[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · **HTTP Service**
+[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · [Durable Storage](durable-storage.md) · **HTTP Service** · [Demo Client](demo-client.md)
 
 The HTTP layer uses Go's standard library. Handlers decode requests and delegate queue behavior to `service.Manager`.
 

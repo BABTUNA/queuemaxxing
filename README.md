@@ -8,6 +8,7 @@ An HTTP-based Frankenstein queue supporting configurable FIFO or LIFO ordering, 
 - [Core Queue Engine](docs/core-queue-engine.md)
 - [Durable Storage and Recovery](docs/durable-storage.md)
 - [HTTP Service](docs/http-service.md)
+- [Demonstration Client](docs/demo-client.md)
 
 ## 1. Establish the Queue's Contract
 
@@ -73,36 +74,15 @@ The HTTP service implements:
 
 **Main goal:** Prove that another application can operate the queue entirely through HTTP.
 
-### 5.1 Implement CLI commands
+**Status:** Implemented in [`internal/client`](internal/client), [`cmd/client`](cmd/client), and [`scripts/demo.sh`](scripts/demo.sh). See [Demonstration Client](docs/demo-client.md).
 
-The client should support commands such as:
+The demonstration application provides:
 
-```bash
-queue-client create emails --ordering fifo
-queue-client enqueue emails --body "Newsletter" --priority 1
-queue-client enqueue emails --body "Password reset" --priority 10
-queue-client dequeue emails
-```
-
-### 5.2 Implement worker mode
-
-A worker command will repeatedly dequeue and process messages:
-
-```bash
-queue-client worker emails
-```
-
-Running multiple workers simultaneously will demonstrate that concurrent consumers do not receive the same message.
-
-### 5.3 Create a repeatable demonstration
-
-The demo should visibly prove:
-
-- Priority ordering
-- FIFO and LIFO tie-breaking
-- Delayed availability
-- Concurrent consumption
-- Recovery after restarting the server
+- Commands to create, inspect, enqueue, dequeue, and check health
+- A polling worker mode for concurrent-consumer demonstrations
+- Typed decoding of server API errors
+- A repeatable FIFO, LIFO, priority, and delay script
+- Client integration tests against the real HTTP handler
 
 ## 6. Validate Correctness and Failure Behavior
 

@@ -1,6 +1,6 @@
 # Durable Storage and Recovery
 
-[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · **Durable Storage** · [HTTP Service](http-service.md)
+[Repository](../README.md) · [Queue Contract](queue-contract.md) · [Core Queue Engine](core-queue-engine.md) · **Durable Storage** · [HTTP Service](http-service.md) · [Demo Client](demo-client.md)
 
 The storage layer owns one append-only Write-Ahead Log (WAL). It does not use a database or another queue.
 
