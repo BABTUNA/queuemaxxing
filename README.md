@@ -4,6 +4,10 @@ Queuemaxxing is a durable HTTP queue written in Go. It supports priority-first o
 
 The service owns its storage through a local append-only Write-Ahead Log. It does not require an external database, queue service, or message broker.
 
+## Video Walkthrough
+
+[Watch the project walkthrough](https://drive.google.com/file/d/1zDB2-OvQ5vviG7DM5p7BLRgkyPz0dDlL/view?usp=sharing)
+
 ## Features
 
 - FIFO or LIFO ordering
