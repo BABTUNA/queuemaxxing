@@ -15,6 +15,8 @@ The service owns its storage through a local append-only Write-Ahead Log. It doe
 - HTTP API and demonstration CLI
 - No external storage dependencies
 
+![Queuemaxxing durable message lifecycle](docs/assets/queue-lifecycle.drawio.png)
+
 ## Quick Start
 
 ### Requirements
@@ -124,8 +126,6 @@ select message
 There is no acknowledgement step, visibility timeout, or automatic retry. If the dequeue record is committed but the response does not reach the consumer, the message remains removed.
 
 ## Architecture
-
-![Queuemaxxing durable message lifecycle](docs/assets/queue-lifecycle.drawio.png)
 
 ```text
 HTTP request
