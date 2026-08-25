@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="31.3.1">
+  <diagram name="Queue Lifecycle">
+    <mxGraphModel dx="1600" dy="720" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1650" pageHeight="750" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="live" value="Live enqueue path" style="swimlane;startSize=36;horizontal=1;rounded=1;html=1;fillColor=#fffdf2;strokeColor=#d6b656;fontSize=18;fontStyle=1;container=1;collapsible=0;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="20" y="30" width="1580" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="client" value="CLI Client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="30" y="90" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="handler" value="HTTP Handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="220" y="90" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="manager" value="Queue Manager" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="420" y="90" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="queue" value="Queue Engine&#xa;mutex protected" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="620" y="80" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="journal" value="Queue Journal" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="830" y="90" width="150" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="wal" value="Write-Ahead Log&#xa;append + fsync" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="1030" y="70" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="eligible" value="Available&#xa;now?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="1230" y="65" width="140" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="ready" value="Ready Heap&#xa;priority + FIFO/LIFO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="1410" y="80" width="150" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="delayed" value="Delayed Heap&#xa;available_at order" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="live">
+          <mxGeometry x="1220" y="260" width="160" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="recovery" value="Restart recovery path" style="swimlane;startSize=36;horizontal=1;rounded=1;html=1;fillColor=#f7f0fa;strokeColor=#9673a6;fontSize=18;fontStyle=1;container=1;collapsible=0;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="600" y="480" width="1000" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="replay" value="Replay WAL&#xa;records" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="recovery">
+          <mxGeometry x="30" y="70" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="recover" value="Recover State&#xa;messages + sequence" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="recovery">
+          <mxGeometry x="250" y="70" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="restore" value="Restore&#xa;named queues" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="recovery">
+          <mxGeometry x="490" y="70" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="rebuilt" value="Rebuilt Ready and&#xa;Delayed Heaps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="recovery">
+          <mxGeometry x="720" y="70" width="210" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;container=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="20" y="480" width="520" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-service" value="" style="rounded=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="45" width="30" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-service-text" value="HTTP and service layer" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;" vertex="1" parent="legend">
+          <mxGeometry x="65" y="40" width="190" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-queue" value="" style="rounded=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="85" width="30" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-queue-text" value="Queue state and heaps" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;" vertex="1" parent="legend">
+          <mxGeometry x="65" y="80" width="190" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-storage" value="" style="rounded=0;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="legend">
+          <mxGeometry x="280" y="45" width="30" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-storage-text" value="Durable storage" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;" vertex="1" parent="legend">
+          <mxGeometry x="325" y="40" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-recovery" value="" style="rounded=0;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="legend">
+          <mxGeometry x="280" y="85" width="30" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-recovery-text" value="Restart recovery" style="text;html=1;align=left;verticalAlign=middle;fontSize=13;" vertex="1" parent="legend">
+          <mxGeometry x="325" y="80" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="leg-note" value="All successful mutations are synced before memory changes." style="text;html=1;align=left;verticalAlign=middle;fontSize=13;fontStyle=2;" vertex="1" parent="legend">
+          <mxGeometry x="20" y="125" width="470" height="35" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="1. HTTP POST" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="client" target="handler"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e2" value="2. Validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="handler" target="manager"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e3" value="3. Find queue" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="manager" target="queue"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e4" value="4. Record" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="queue" target="journal"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e5" value="5. Append + fsync" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="journal" target="wal"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e6" value="6. Sync succeeds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="wal" target="eligible"><mxGeometry relative="1" as="geometry"><mxPoint x="0" y="52" as="offset" /></mxGeometry></mxCell>
+        <mxCell id="e7" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="eligible" target="ready"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="eligible" target="delayed"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" value="Delay expires" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=1;exitY=0.5;entryX=0.5;entryY=1;" edge="1" parent="1" source="delayed" target="ready">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1490" y="370" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e10" value="Application restart" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;labelBackgroundColor=#ffffff;fontSize=12;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="wal" target="replay">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1125" y="450" /><mxPoint x="710" y="450" /></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="replay" target="recover"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="recover" target="restore"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="restore" target="rebuilt"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

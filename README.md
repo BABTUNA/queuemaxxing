@@ -125,6 +125,8 @@ There is no acknowledgement step, visibility timeout, or automatic retry. If the
 
 ## Architecture
 
+![Queuemaxxing durable message lifecycle](docs/assets/queue-lifecycle.drawio.png)
+
 ```text
 HTTP request
 → HTTP handler
