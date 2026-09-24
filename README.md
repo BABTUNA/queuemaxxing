@@ -35,6 +35,18 @@ go run ./cmd/server
 
 The server starts at `http://localhost:8080` and stores its WAL at `./data/queue.wal`.
 
+Verify that the server is ready before running the client commands:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
 ### Create a queue
 
 In another terminal:
